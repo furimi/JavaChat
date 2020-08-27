@@ -72,7 +72,6 @@ public class Server {
 
 
         public void send(String Username, String message, int typeofmessage){ //send everything to every client
-            System.out.println("case" + typeofmessage);
             switch (typeofmessage){
                 case 1: writer.println("----------Servermessage:  " + Username + " " +  message + "----------");
                 break;
@@ -88,14 +87,27 @@ public class Server {
 
         public void run()  {
             String line;
+            Boolean running = true;
             try    {
-                while(true)   {
+                while(running)   {
                     line = reader.readLine();
-                    if (line.equals("end") ) { //close when "end" is received from client
-                        clients.remove(this); //remove client from list
-                        users.remove(Username); //remove name of client from list
-                        send(Username,"disconnected!", 1);
-                        break;
+                    if (line.charAt(0) == '/') { //check if command
+                        switch(line.substring(1).trim()) {
+                            case "quit": //quitcommand called
+                                clients.remove(this); //remove client from list
+                                users.remove(Username); //remove name of client from list
+                                send(Username,"disconnected!", 1); //send disconnect message
+                                for(ClientHandler client: clients) {
+                                    if(client.Username.equals(Username)) {
+                                        reader.close(); //close reader
+                                        writer.close(); //close writer
+                                        this.client.close(); // close connection
+                                        running = false; //kill thread
+                                    }
+                                }
+                                break;
+                        }
+
                     }
 
                     if(!line.equals("null")) {

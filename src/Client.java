@@ -69,7 +69,7 @@ public class Client extends JFrame{
         btnsend.setBounds(600,600,125,25);
         btnsend.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) { //send text
                 if(!fieldinput.getText().equals("")) {
                     writer.println(fieldinput.getText());
                     fieldinput.setText("");
@@ -77,7 +77,7 @@ public class Client extends JFrame{
             }
         });
 
-        KeyListener tfKeyListener = new KeyAdapter() {
+        KeyListener tfKeyListener = new KeyAdapter() { //call function of send btn when "Enter" is pressed
             public void keyPressed(KeyEvent evt) {
                 if (evt.getKeyCode() == KeyEvent.VK_ENTER)
                     btnsend.doClick();
@@ -92,7 +92,6 @@ public class Client extends JFrame{
         areatext.setEditable(false);
         areatext.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        JScrollPane scroll = new JScrollPane(areatext, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         areauser = new JTextArea(10,20);
         areauser.setLineWrap(true);
@@ -100,10 +99,8 @@ public class Client extends JFrame{
         areauser.setEditable(false);
         areauser.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        JScrollPane scroll2 = new JScrollPane(areauser, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         add(areauser);
-        add(scroll);
         add(btnsend);
         add(areatext);
         add(fieldinput);
@@ -111,6 +108,14 @@ public class Client extends JFrame{
 
         clearuser();
         refreshlist();
+
+        addWindowListener(new WindowAdapter() { //event called when closed
+            public void windowClosing(WindowEvent e){
+                writer.println("/quit"); //send quit command
+                dispose(); //close frame
+                System.exit(0); //close programm
+            }
+        });
     }
 
     public void getMessage(String message){
