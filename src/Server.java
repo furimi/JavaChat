@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Server {
     private int port;
@@ -32,7 +35,7 @@ public class Server {
     public void refreshUserList() {
         for(ClientHandler client: clients) {
             for(String clientname: users) {
-                client.send(null, clientname, 3);
+                client.send(null, clientname, "adduser");
             }
         }
     }
@@ -66,20 +69,37 @@ public class Server {
 
             users.add(this.Username); //add to list of users
             sleep(100);
-            send(Username, "connected!", 1);
+            send(Username, "connected!", "servermessage");
         }
 
+        public String getTime() {
+            Calendar calendar = Calendar.getInstance();
 
+            String Jahr = String.valueOf(calendar.get(Calendar.YEAR));
+            String Monat = String.valueOf(calendar.get(Calendar.MONTH));
+            String Tag = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+            String Stunde = String.valueOf(calendar.get(Calendar.HOUR));
+            String Minute = String.valueOf(calendar.get(Calendar.MINUTE));
 
-        public void send(String Username, String message, int typeofmessage){ //send everything to every client
+            if(Minute.length() < 2) {
+                Minute = "0" + Minute;
+            }
+
+            return (Tag + ". " + Monat + " " + Jahr + "     " + Stunde + ":" + Minute);
+        }
+
+        public void send(String Username, String message, String typeofmessage){ //send everything to every client
             switch (typeofmessage){
-                case 1: writer.println("----------Servermessage:  " + Username + " " +  message + "----------");
+                case "servermessage": writer.println("----------Servermessage:  " + Username + " " +  message + "----------");
                 break;
 
-                case 2: writer.println(Username + ": " + message);
+                case "message": writer.println(Username + ": " + message);
                 break;
 
-                case 3: writer.println("add" + message);
+                case "adduser": writer.println("add" + message);
+                break;
+
+                case "time": writer.println("Datum: " + getTime() + "\n" + "Du bist verbunden seit ");
                 break;
             }
 
@@ -90,13 +110,13 @@ public class Server {
             Boolean running = true;
             try    {
                 while(running)   {
-                    line = reader.readLine();
+                    line = reader.readLine().toLowerCase();
                     if (line.charAt(0) == '/') { //check if command
                         switch(line.substring(1).trim()) {
                             case "quit": //quitcommand called
                                 clients.remove(this); //remove client from list
                                 users.remove(Username); //remove name of client from list
-                                send(Username,"disconnected!", 1); //send disconnect message
+                                send(Username,"disconnected!", "servermessage"); //send disconnect message
                                 for(ClientHandler client: clients) {
                                     if(client.Username.equals(Username)) {
                                         reader.close(); //close reader
@@ -106,12 +126,16 @@ public class Server {
                                     }
                                 }
                                 break;
+
+                            case "time": //time will be printed out
+                                send(null, null ,"time");
+                                break;
                         }
 
                     }
 
                     if(!line.equals("null")) {
-                        send(Username,line, 2);
+                        send(Username,line, "message");
                     }
                 }
             }
